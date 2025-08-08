@@ -8,7 +8,7 @@
 
 
 > ## Exceção - URL inválida
-- [ ] Sistema retorna uma mensagem de erro inesperado
+- [x] Sistema retorna uma mensagem de erro inesperado
 
 > ## Exceção - Dados inválidos
 - [x] Sistema retorna uma mensagem de erro inesperado

@@ -15,14 +15,13 @@ class RemoteAuthentication {
         method: 'post',
         body: RemoteAuthenticationParams.fromDomain(params).toJson(),
       );
-    } on HttpError {
-      throw DomainError.unexpected;
+    } on HttpError catch (error) {
+      if (error == HttpError.unexpected) {
+        throw DomainError.unexpected;
+      } else if (error == HttpError.notFound) {
+        throw DomainError.notFound;
+      }
     }
-    await httpClient.request(
-      url: url,
-      method: 'post',
-      body: RemoteAuthenticationParams.fromDomain(params).toJson(),
-    );
   }
 }
 
