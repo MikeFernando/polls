@@ -1,0 +1,26 @@
+{
+  "name": "Auto Commit",
+  "description": "Gera commit automático baseado nas mudanças",
+  "commands": [
+    {
+      "name": "qc",
+      "description": "Commit rápido automático",
+      "command": "qc"
+    },
+    {
+      "name": "qcp",
+      "description": "Commit com preview (pergunta antes)",
+      "command": "qcp"
+    },
+    {
+      "name": "acm",
+      "description": "Apenas mostrar mensagem de commit",
+      "command": "acm"
+    },
+    {
+      "name": "acc",
+      "description": "Commit completo com análise detalhada",
+      "command": "acc"
+    }
+  ]
+}

@@ -2,6 +2,38 @@
 
 A new Flutter project.
 
+## 🚀 Auto Commit Scripts
+
+Este projeto inclui scripts para gerar commits automáticos baseados nas mudanças do Git.
+
+### Instalação Rápida
+
+```bash
+# Execute o script de instalação
+./scripts/install.sh
+
+# Recarregue seu shell
+source ~/.zshrc
+```
+
+### Uso
+
+```bash
+# Commit rápido automático
+qc
+
+# Commit com preview (pergunta antes)
+qcp
+
+# Apenas mostrar mensagem de commit
+acm
+
+# Commit completo com análise detalhada
+acc
+```
+
+Para mais detalhes, veja [scripts/README.md](scripts/README.md).
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.

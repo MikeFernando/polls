@@ -1,0 +1,28 @@
+{
+  "commands": {
+    "auto-commit": {
+      "name": "Auto Commit",
+      "description": "Gera e executa commit automático baseado nas mudanças",
+      "command": "qc",
+      "shortcut": "cmd+shift+c"
+    },
+    "commit-preview": {
+      "name": "Commit Preview",
+      "description": "Mostra preview do commit antes de executar",
+      "command": "qcp",
+      "shortcut": "cmd+shift+p"
+    },
+    "commit-message": {
+      "name": "Show Commit Message",
+      "description": "Apenas mostra a mensagem de commit sugerida",
+      "command": "acm",
+      "shortcut": "cmd+shift+m"
+    }
+  },
+  "terminal": {
+    "shell": "/bin/zsh",
+    "shellArgs": [
+      "-l"
+    ]
+  }
+}
