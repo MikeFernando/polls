@@ -17,7 +17,7 @@
 - [ ] Sistema retorna uma mensagem de erro inesperado
 
 > ## Exceção - Falha no servidor
-- [ ] Sistema retorna uma mensagem de erro inesperado
+- [x] Sistema retorna uma mensagem de erro inesperado
 
 > ## Exceção - Credências inválidas
 - [ ] Sistema retorna uma mensagem de erro informando que as credências estão erradas
