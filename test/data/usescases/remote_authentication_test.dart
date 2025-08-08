@@ -2,16 +2,23 @@ import 'package:faker/faker.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 
+import 'package:polls/usecases/usecases.dart';
+
 import '../mocks/mocks.dart';
 
 class RemoteAuthentication {
   final HttpClient httpClient;
   final String url;
+  final Map<String, dynamic>? body;
 
-  RemoteAuthentication({required this.httpClient, required this.url});
+  RemoteAuthentication({
+    required this.httpClient,
+    required this.url,
+    this.body,
+  });
 
-  Future<void> auth({required String email, required String password}) async {
-    await httpClient.request(url: url, method: 'post');
+  Future<void> auth(AuthenticationParams params) async {
+    await httpClient.request(url: url, method: 'post', body: params.toJson());
   }
 }
 
@@ -31,13 +38,14 @@ void main() {
   });
 
   test('Should call HttpClient with correct values', () async {
-    // Arrange
-    when(httpClient.request(url: url, method: 'post')).thenAnswer((_) async {});
+    final params = AuthenticationParams(email: email, password: password);
+    final body = params.toJson();
+    when(
+      httpClient.request(url: url, method: 'post', body: body),
+    ).thenAnswer((_) async {});
 
-    // Act
-    await sut.auth(email: email, password: password);
+    await sut.auth(params);
 
-    // Assert
-    verify(httpClient.request(url: url, method: 'post')).called(1);
+    verify(httpClient.request(url: url, method: 'post', body: body)).called(1);
   });
 }
