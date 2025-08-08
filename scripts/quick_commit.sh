@@ -112,19 +112,77 @@ categorize_changes() {
     fi
 }
 
-# Função para gerar descrição
+# Função para analisar conteúdo do arquivo
+analyze_file_content() {
+    local file_path="$1"
+    
+    # Pega o diff do arquivo
+    local diff_content=$(git diff --cached "$file_path" 2>/dev/null || git diff "$file_path" 2>/dev/null)
+    
+    if [ -z "$diff_content" ]; then
+        return
+    fi
+    
+    # Conta linhas adicionadas e removidas
+    local lines_added=$(echo "$diff_content" | grep -c '^+' || echo "0")
+    local lines_deleted=$(echo "$diff_content" | grep -c '^-' || echo "0")
+    
+    # Procura por palavras-chave
+    local has_function=$(echo "$diff_content" | grep -i 'function\|class\|method\|def \|void \|public \|private ' | wc -l)
+    local has_test=$(echo "$diff_content" | grep -i 'test\|spec\|expect\|assert' | wc -l)
+    local has_error=$(echo "$diff_content" | grep -i 'error\|exception\|catch\|throw' | wc -l)
+    local has_import=$(echo "$diff_content" | grep -i 'import\|export\|require' | wc -l)
+    
+    # Gera descrição baseada no conteúdo
+    if [ "$has_function" -gt 0 ]; then
+        echo "add new functionality"
+    elif [ "$has_test" -gt 0 ]; then
+        echo "add test coverage"
+    elif [ "$has_error" -gt 0 ]; then
+        echo "fix error handling"
+    elif [ "$has_import" -gt 0 ]; then
+        echo "add new imports"
+    elif [ "$lines_added" -gt 0 ] && [ "$lines_deleted" -eq 0 ]; then
+        echo "add $lines_added line(s) of code"
+    elif [ "$lines_deleted" -gt 0 ] && [ "$lines_added" -eq 0 ]; then
+        echo "remove $lines_deleted line(s) of code"
+    elif [ "$lines_added" -gt 0 ] && [ "$lines_deleted" -gt 0 ]; then
+        echo "modify code ($lines_added added, $lines_deleted removed)"
+    else
+        echo "update code"
+    fi
+}
+
+# Função para gerar descrição descritiva
 generate_description() {
     local staged_files=$(git diff --cached --name-only 2>/dev/null || true)
     local unstaged_files=$(git diff --name-only 2>/dev/null || true)
     local untracked_files=$(git ls-files --others --exclude-standard 2>/dev/null || true)
     
-    local total_files=$(echo -e "$staged_files\n$unstaged_files\n$untracked_files" | grep -v '^$' | wc -l)
+    local descriptions=()
+    local count=0
     
-    if [ $total_files -eq 1 ]; then
-        local file=$(echo -e "$staged_files\n$unstaged_files\n$untracked_files" | grep -v '^$' | head -1)
-        echo "update $(basename "$file")"
-    else
+    # Analisa cada arquivo
+    while IFS= read -r file; do
+        if [[ -n "$file" ]] && [[ $count -lt 3 ]]; then
+            local content_desc=$(analyze_file_content "$file")
+            local filename=$(basename "$file")
+            
+            if [[ -n "$content_desc" ]]; then
+                descriptions+=("$content_desc in $filename")
+            else
+                descriptions+=("update $filename")
+            fi
+            
+            ((count++))
+        fi
+    done < <(echo -e "$staged_files\n$unstaged_files\n$untracked_files" | grep -v '^$')
+    
+    if [ ${#descriptions[@]} -eq 0 ]; then
+        local total_files=$(echo -e "$staged_files\n$unstaged_files\n$untracked_files" | grep -v '^$' | wc -l)
         echo "update $total_files files"
+    else
+        printf '%s; ' "${descriptions[@]}" | sed 's/; $//'
     fi
 }
 

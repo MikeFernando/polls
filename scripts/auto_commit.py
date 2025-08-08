@@ -118,6 +118,113 @@ class GitCommitGenerator:
         
         return 'other'
     
+    def analyze_file_content(self, file_path: str) -> str:
+        """Analisa o conteúdo do arquivo para gerar descrição mais específica"""
+        try:
+            # Pega o diff do arquivo
+            result = subprocess.run(['git', 'diff', '--cached', file_path], 
+                                 capture_output=True, text=True, check=True)
+            diff_content = result.stdout
+            
+            # Se não há diff staged, pega o diff unstaged
+            if not diff_content.strip():
+                result = subprocess.run(['git', 'diff', file_path], 
+                                     capture_output=True, text=True, check=True)
+                diff_content = result.stdout
+            
+            if not diff_content.strip():
+                return ""
+            
+            # Analisa o tipo de mudança baseado no diff
+            lines_added = len([line for line in diff_content.split('\n') if line.startswith('+') and not line.startswith('+++')])
+            lines_deleted = len([line for line in diff_content.split('\n') if line.startswith('-') and not line.startswith('---')])
+            
+            # Extrai palavras-chave do diff
+            keywords = []
+            for line in diff_content.split('\n'):
+                if line.startswith('+') and not line.startswith('+++'):
+                    # Procura por palavras-chave em funções, classes, etc.
+                    if any(keyword in line.lower() for keyword in ['function', 'class', 'method', 'def ', 'void ', 'public ', 'private ']):
+                        keywords.append('function')
+                    elif any(keyword in line.lower() for keyword in ['test', 'spec', 'expect', 'assert']):
+                        keywords.append('test')
+                    elif any(keyword in line.lower() for keyword in ['import', 'export', 'require']):
+                        keywords.append('import')
+                    elif any(keyword in line.lower() for keyword in ['error', 'exception', 'catch', 'throw']):
+                        keywords.append('error')
+                    elif any(keyword in line.lower() for keyword in ['config', 'setting', 'option']):
+                        keywords.append('config')
+            
+            # Gera descrição baseada no conteúdo
+            if keywords:
+                if 'function' in keywords:
+                    return "add new functionality"
+                elif 'test' in keywords:
+                    return "add test coverage"
+                elif 'error' in keywords:
+                    return "fix error handling"
+                elif 'config' in keywords:
+                    return "update configuration"
+                elif 'import' in keywords:
+                    return "add new imports"
+            
+            # Descrição baseada no número de linhas
+            if lines_added > 0 and lines_deleted == 0:
+                return f"add {lines_added} line(s) of code"
+            elif lines_deleted > 0 and lines_added == 0:
+                return f"remove {lines_deleted} line(s) of code"
+            elif lines_added > 0 and lines_deleted > 0:
+                return f"modify code ({lines_added} added, {lines_deleted} removed)"
+            
+            return "update code"
+            
+        except subprocess.CalledProcessError:
+            return ""
+
+    def generate_descriptive_message(self, changes: Dict[str, List[str]]) -> str:
+        """Gera uma mensagem descritiva baseada no conteúdo das mudanças"""
+        descriptions = []
+        
+        for category, files in changes.items():
+            if not files:
+                continue
+                
+            for file_info in files:
+                change_type, file_path = file_info.split(': ', 1)
+                
+                # Analisa o conteúdo específico do arquivo
+                content_desc = self.analyze_file_content(file_path)
+                
+                if content_desc:
+                    if category == 'features':
+                        descriptions.append(f"implement {content_desc} in {os.path.basename(file_path)}")
+                    elif category == 'fixes':
+                        descriptions.append(f"fix {content_desc} in {os.path.basename(file_path)}")
+                    elif category == 'tests':
+                        descriptions.append(f"add {content_desc} for {os.path.basename(file_path)}")
+                    elif category == 'docs':
+                        descriptions.append(f"update documentation for {os.path.basename(file_path)}")
+                    elif category == 'refactor':
+                        descriptions.append(f"refactor {content_desc} in {os.path.basename(file_path)}")
+                    else:
+                        descriptions.append(f"update {os.path.basename(file_path)}")
+                else:
+                    # Fallback para descrição genérica
+                    if category == 'features':
+                        descriptions.append(f"add new feature in {os.path.basename(file_path)}")
+                    elif category == 'fixes':
+                        descriptions.append(f"fix issue in {os.path.basename(file_path)}")
+                    elif category == 'tests':
+                        descriptions.append(f"add test for {os.path.basename(file_path)}")
+                    elif category == 'docs':
+                        descriptions.append(f"update documentation")
+                    elif category == 'refactor':
+                        descriptions.append(f"refactor {os.path.basename(file_path)}")
+                    else:
+                        descriptions.append(f"update {os.path.basename(file_path)}")
+        
+        return "; ".join(descriptions[:3])  # Limita a 3 descrições para não ficar muito longo
+
     def generate_commit_message(self, custom_message: str = None) -> str:
         """Gera uma mensagem de commit baseada nas mudanças"""
         if custom_message:
@@ -149,39 +256,40 @@ class GitCommitGenerator:
         else:
             prefix = "chore"
         
-        # Gera descrição baseada nas mudanças
-        descriptions = []
+        # Gera descrição descritiva baseada no conteúdo
+        description = self.generate_descriptive_message(changes)
         
-        if change_counts.get('features'):
-            descriptions.append(f"add {change_counts['features']} feature(s)")
+        if not description:
+            # Fallback para descrição genérica
+            descriptions = []
+            
+            if change_counts.get('features'):
+                descriptions.append(f"add {change_counts['features']} feature(s)")
+            
+            if change_counts.get('fixes'):
+                descriptions.append(f"fix {change_counts['fixes']} issue(s)")
+            
+            if change_counts.get('refactor'):
+                descriptions.append(f"refactor {change_counts['refactor']} file(s)")
+            
+            if change_counts.get('tests'):
+                descriptions.append(f"add {change_counts['tests']} test(s)")
+            
+            if change_counts.get('docs'):
+                descriptions.append(f"update {change_counts['docs']} doc(s)")
+            
+            if change_counts.get('config'):
+                descriptions.append(f"update {change_counts['config']} config(s)")
+            
+            if change_counts.get('dependencies'):
+                descriptions.append(f"update {change_counts['dependencies']} dependency(ies)")
+            
+            if change_counts.get('other'):
+                descriptions.append(f"update {change_counts['other']} file(s)")
+            
+            description = ", ".join(descriptions)
         
-        if change_counts.get('fixes'):
-            descriptions.append(f"fix {change_counts['fixes']} issue(s)")
-        
-        if change_counts.get('refactor'):
-            descriptions.append(f"refactor {change_counts['refactor']} file(s)")
-        
-        if change_counts.get('tests'):
-            descriptions.append(f"add {change_counts['tests']} test(s)")
-        
-        if change_counts.get('docs'):
-            descriptions.append(f"update {change_counts['docs']} doc(s)")
-        
-        if change_counts.get('config'):
-            descriptions.append(f"update {change_counts['config']} config(s)")
-        
-        if change_counts.get('dependencies'):
-            descriptions.append(f"update {change_counts['dependencies']} dependency(ies)")
-        
-        if change_counts.get('other'):
-            descriptions.append(f"update {change_counts['other']} file(s)")
-        
-        description = ", ".join(descriptions)
-        
-        # Adiciona timestamp
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-        
-        return f"{prefix}: {description} ({timestamp})"
+        return f"{prefix}: {description}"
     
     def stage_all_changes(self) -> bool:
         """Adiciona todas as mudanças ao staging area"""
