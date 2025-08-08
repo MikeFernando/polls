@@ -1,15 +1,7 @@
 import 'package:mockito/mockito.dart';
 
-// Definição da classe HttpClient
-abstract class HttpClient {
-  Future<void> request({
-    required String url,
-    required String method,
-    Map<String, dynamic>? body,
-  });
-}
+import 'package:polls/data/http/http.dart';
 
-// Mock da classe HttpClientSpy
 class HttpClientSpy extends Mock implements HttpClient {
   @override
   Future<void> request({

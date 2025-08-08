@@ -2,25 +2,10 @@ import 'package:faker/faker.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 
+import 'package:polls/data/usecases/usecases.dart';
 import 'package:polls/usecases/usecases.dart';
 
 import '../mocks/mocks.dart';
-
-class RemoteAuthentication {
-  final HttpClient httpClient;
-  final String url;
-  final Map<String, dynamic>? body;
-
-  RemoteAuthentication({
-    required this.httpClient,
-    required this.url,
-    this.body,
-  });
-
-  Future<void> auth(AuthenticationParams params) async {
-    await httpClient.request(url: url, method: 'post', body: params.toJson());
-  }
-}
 
 void main() {
   late RemoteAuthentication sut;
