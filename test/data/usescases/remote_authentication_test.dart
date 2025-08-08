@@ -2,7 +2,9 @@ import 'package:faker/faker.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 
+import 'package:polls/data/http/http.dart';
 import 'package:polls/data/usecases/usecases.dart';
+import 'package:polls/domain/helpers/helpers.dart';
 import 'package:polls/usecases/usecases.dart';
 
 import '../mocks/mocks.dart';
@@ -32,5 +34,21 @@ void main() {
     await sut.auth(params);
 
     verify(httpClient.request(url: url, method: 'post', body: body)).called(1);
+  });
+
+  test('Should throw UnexpectedError if HttpClient returns 400', () async {
+    when(
+      httpClient.request(
+        url: anyNamed('url'),
+        method: anyNamed('method'),
+        body: anyNamed('body'),
+      ),
+    ).thenThrow(HttpError.badRequest);
+
+    final params = AuthenticationParams(email: email, password: password);
+
+    final future = sut.auth(params);
+
+    expect(future, throwsA(DomainError.unexpected));
   });
 }

@@ -5,8 +5,8 @@ import 'package:polls/data/http/http.dart';
 class HttpClientSpy extends Mock implements HttpClient {
   @override
   Future<void> request({
-    required String url,
-    required String method,
+    required String? url,
+    required String? method,
     Map<String, dynamic>? body,
   }) async {
     return super.noSuchMethod(

@@ -1,8 +1,8 @@
 # Remote Authentication Use Case - Todo List de Testes
 
 ### ✅ Teste 1: Login com Credenciais Válidas
-- [ ] Sistema valida os dados
-- [ ] Sistema faz uma requisição para a URL da API de login
+- [x] Sistema valida os dados
+- [x] Sistema faz uma requisição para a URL da API de login
 - [ ] Sistema valida os dados recebidos da API
 - [ ] Sistema entrega os dados da conta do usuário
 
@@ -11,7 +11,7 @@
 - [ ] Sistema retorna uma mensagem de erro inesperado
 
 > ## Exceção - Dados inválidos
-- [ ] Sistema retorna uma mensagem de erro inesperado
+- [x] Sistema retorna uma mensagem de erro inesperado
 
 > ## Exceção - Resposta inválida
 - [ ] Sistema retorna uma mensagem de erro inesperado
