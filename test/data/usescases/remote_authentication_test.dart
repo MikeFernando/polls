@@ -24,7 +24,7 @@ void main() {
 
   test('Should call HttpClient with correct values', () async {
     final params = AuthenticationParams(email: email, password: password);
-    final body = params.toJson();
+    final body = RemoteAuthenticationParams.fromDomain(params).toJson();
     when(
       httpClient.request(url: url, method: 'post', body: body),
     ).thenAnswer((_) async {});

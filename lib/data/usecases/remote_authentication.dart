@@ -1,5 +1,5 @@
-import '../http/http_client.dart';
 import '../../usecases/usecases.dart';
+import '../http/http_client.dart';
 
 class RemoteAuthentication {
   final HttpClient httpClient;
@@ -13,6 +13,28 @@ class RemoteAuthentication {
   });
 
   Future<void> auth(AuthenticationParams params) async {
-    await httpClient.request(url: url, method: 'post', body: params.toJson());
+    await httpClient.request(
+      url: url,
+      method: 'post',
+      body: RemoteAuthenticationParams.fromDomain(params).toJson(),
+    );
+  }
+}
+
+class RemoteAuthenticationParams {
+  final String email;
+  final String password;
+
+  RemoteAuthenticationParams({required this.email, required this.password});
+
+  factory RemoteAuthenticationParams.fromDomain(AuthenticationParams params) {
+    return RemoteAuthenticationParams(
+      email: params.email,
+      password: params.password,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'email': email, 'password': password};
   }
 }
